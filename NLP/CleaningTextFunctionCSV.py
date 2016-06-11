@@ -12,8 +12,8 @@ from sklearn.ensemble import RandomForestClassifier
 from bs4 import BeautifulSoup
 
 # Get data from labeledTrainData to python
-train = pd.read_csv("labeledTrainData.tsv", header=0,
-                    delimiter="\t", quoting=3)
+train = pd.read_csv("LabeledFailureTrainDataSet.csv", header=0,
+                    encoding="ISO-8859-1")
 
 
 def review_to_words(raw_review):
@@ -26,7 +26,7 @@ def review_to_words(raw_review):
     from nltk.corpus import stopwords  # Import the stop word list
 
     # 1. Remove HTML
-    # Initialize the BeautifulSoup4 obkect on a single movie review
+    # Initialize the BeautifulSoup4 object on a single movie review
     review_text = BeautifulSoup(raw_review,"html.parser").get_text()
     # example1 = BeautifulSoup(train["review"][0], "html.parser")
 
@@ -75,7 +75,7 @@ def review_to_words(raw_review):
 # print(clean_review)
 
 # Get the number of reviews based on the dataframe column size
-num_reviews = train["review"].size
+num_reviews = train["Description"].size
 
 # Initialize a empty list to hold the clean reviews
 clean_train_reviews = []
@@ -87,7 +87,7 @@ for i in range(0, num_reviews):
     # clean review
     if((i + 1) % 1000 == 0):
         print("Review %d of %d\n" % (i + 1, num_reviews))
-    clean_train_reviews.append(review_to_words(train["review"][i]))
+    clean_train_reviews.append(review_to_words(train["Description"][i]))
 
 # Print first cleat test for showing off
 print(clean_train_reviews[0])
@@ -141,21 +141,22 @@ forest = RandomForestClassifier(n_estimators=100)
 # features and the sentiment labels as the response variable
 #
 # This may take a few minutes to run`
-forest = forest.fit(train_data_features, train["sentiment"])
+forest = forest.fit(train_data_features, train["Failure"])
 
 # Read the test data
-test = pd.read_csv("testData.tsv", header=0, delimiter="\t", quoting=3)
+test = pd.read_csv("UnLabeledFailureTestDataSetPumpTrac.csv", header=0,
+    encoding="ISO-8859-1")
 print(test.shape)
 
 # Create an empty list and append the clean reviews one by one
-num_reviews = len(test["review"])
+num_reviews = len(test["Description"])
 clean_test_review = []
 
 print('Cleaning and parsing the test set movie reviews...\n')
 for i in range(0, num_reviews):
     if((i + 1) % 1000 == 0):
         print('Review %d of %d\n' % (i + 1, num_reviews))
-    clean_review = review_to_words(test['review'][i])
+    clean_review = review_to_words(test['Description'][i])
     clean_test_review.append(clean_review)
 
 # Get a bag of words for the test set, and convert to a numpy array
@@ -168,7 +169,7 @@ result = forest.predict(test_data_features)
 
 # Copy the results to a pandas dataframe with an "id" columnd and a
 # "sentiment" column
-output = pd.DataFrame(data={"id": test["id"], "sentiment": result})
+output = pd.DataFrame(data={"id": test["id"], "Failure": result})
 
 # Use pandas to write the comma separated output file
-output.to_csv("bag_of_words_model2.csv", index=False, quoting=3)
+output.to_csv("PumpWOPrediction.csv", index=False, quoting=3)
